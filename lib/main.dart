@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'routes/app_pages.dart';
 import 'package:prueba_tecnica/data/models/post_model.dart';
+import 'core/bindings/initial_bindings.dart';
 
 Future<void> main() async {
   // 1. Inicializar binding de Flutter
@@ -40,6 +41,7 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: AppPages.initial,
       getPages: AppPages.routes,
+      initialBinding: InitialBindings(),
       debugShowCheckedModeBanner: false,
       defaultTransition: Transition.cupertino,
       transitionDuration: const Duration(milliseconds: 300),

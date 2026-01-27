@@ -12,39 +12,58 @@ class ApiService {
     try {
       final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.postsEndpoint}');
       
+      print('Fetching posts from URL: $url');
+
+      // Headers básicos
+      final Map<String, String> headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+
       final response = await _client
-          .get(url)
+          .get(url, headers: headers)
           .timeout(ApiConstants.receiveTimeout);
+      
+      print('Response status: ${response.statusCode}');
       
       if (response.statusCode == ApiConstants.successCode) {
         final List<dynamic> jsonList = json.decode(response.body);
+        print('Successfully fetched ${jsonList.length} posts');
         return jsonList.cast<Map<String, dynamic>>();
       } else {
+        // Manejo detallado de errores
+        print('Response body: ${response.body}');
+        
         String errorMessage;
         switch (response.statusCode) {
-          case ApiConstants.badRequestCode:
-            errorMessage = 'Solicitud incorrecta';
+          case 400:
+            errorMessage = 'Bad Request';
             break;
-          case ApiConstants.unauthorizedCode:
-            errorMessage = 'No autorizado';
+          case 401:
+            errorMessage = 'Unauthorized';
             break;
-          case ApiConstants.notFoundCode:
-            errorMessage = 'Recurso no encontrado';
+          case 403:
+            errorMessage = 'Forbidden - Check API permissions';
             break;
-          case ApiConstants.serverErrorCode:
-            errorMessage = 'Error del servidor';
+          case 404:
+            errorMessage = 'Not Found';
+            break;
+          case 500:
+            errorMessage = 'Internal Server Error';
             break;
           default:
-            errorMessage = 'Error ${response.statusCode}';
+            errorMessage = 'HTTP Error ${response.statusCode}';
         }
-        throw Exception(errorMessage);
+        throw Exception('API Error: $errorMessage');
       }
     } on TimeoutException {
-      throw Exception('La solicitud tardó demasiado. Verifica tu conexión.');
+      throw Exception('Request timeout. Check your internet connection.');
     } on http.ClientException catch (e) {
-      throw Exception('Error de red: ${e.message}');
+      throw Exception('Network error: ${e.message}');
+    } on FormatException catch (e) {
+      throw Exception('Data format error: $e');
     } catch (e) {
-      throw Exception('Error inesperado: $e');
+      throw Exception('Unexpected error: $e');
     }
   }
   

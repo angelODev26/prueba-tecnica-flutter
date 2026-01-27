@@ -38,6 +38,7 @@ dev_dependencies:
     sdk: flutter
   hive_generator: ^1.1.3
   build_runner: ^2.4.7
+  flutter_lints: ^4.0.0
 
 flutter:
   uses-material-design: true
