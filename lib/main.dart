@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'routes/app_pages.dart';
+import 'package:prueba_tecnica/data/models/post_model.dart';
 
 Future<void> main() async {
   // 1. Inicializar binding de Flutter
@@ -15,7 +16,7 @@ Future<void> main() async {
   await Hive.initFlutter();
   
   // 4. Registrar adaptadores (se añadirán después)
-  // Hive.registerAdapter(PostModelAdapter()); // COMENTADO POR AHORA
+  Hive.registerAdapter(PostModelAdapter());
   
   // 5. Abrir boxes de Hive
   await Hive.openBox('app_settings');

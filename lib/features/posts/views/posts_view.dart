@@ -24,7 +24,7 @@ class PostsView extends StatelessWidget {
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: 100,
+        itemCount: 10,
         itemBuilder: (context, index) {
           return Card(
             child: ListTile(
