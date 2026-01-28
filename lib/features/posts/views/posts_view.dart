@@ -15,10 +15,6 @@ class PostsView extends GetView<PostsController> {
               ? const Icon(Icons.wifi_off, color: Colors.orange)
               : const Icon(Icons.wifi, color: Colors.green)),
           IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {},
-          ),
-          IconButton(
             icon: const Icon(Icons.delete_outline),
             tooltip: 'Limpiar caché',
             onPressed: () {
@@ -45,8 +41,27 @@ class PostsView extends GetView<PostsController> {
           ),
           IconButton(
             icon: const Icon(Icons.logout),
+            tooltip: 'Cerrar sesión',
             onPressed: () {
-              Get.offAllNamed('/auth');
+              Get.dialog(
+                AlertDialog(
+                  title: const Text('Cerrar sesión'),
+                  content: const Text('¿Estás seguro de cerrar sesión?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Get.back(),
+                      child: const Text('Cancelar'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Get.back();
+                        controller.logout();
+                      },
+                      child: const Text('Cerrar sesión'),
+                    ),
+                  ],
+                ),
+              );
             },
           ),
         ],

@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import '../../../data/models/post_model.dart';
 import '../../../data/repositories/post_repository.dart';
 import '../../../core/services/connectivity_service.dart';
+import '../../../core/services/auth_service.dart';
+import '../../../core/services/local_storage_service.dart';
 import '../../../core/exceptions/cache_exception.dart';
 
 class PostsController extends GetxController {
@@ -137,6 +139,40 @@ class PostsController extends GetxController {
       await loadPosts();
     } catch (e) {
       Get.snackbar('Error', 'No se pudo limpiar el caché');
+    }
+  }
+
+  /// Cierra sesión del usuario
+  Future<void> logout() async {
+    try {
+      // 1. Cerrar sesión en Firebase Auth (si está disponible)
+      if (Get.isRegistered<AuthService>()) {
+        final authService = Get.find<AuthService>();
+        await authService.logout();
+      }
+      
+      // 2. Limpiar sesión local
+      final localStorage = Get.find<LocalStorageService>();
+      await localStorage.clearUser();
+      
+      print('✅ Sesión cerrada exitosamente');
+      
+      // 3. Navegar a login limpiando todo el stack
+      Get.offAllNamed('/auth');
+      
+      Get.snackbar(
+        '👋 Sesión cerrada',
+        'Hasta pronto',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 2),
+      );
+    } catch (e) {
+      print('❌ Error al cerrar sesión: $e');
+      Get.snackbar(
+        'Error',
+        'No se pudo cerrar sesión',
+        snackPosition: SnackPosition.BOTTOM,
+      );
     }
   }
 }
