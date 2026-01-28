@@ -1,26 +1,41 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../data/models/post_model.dart';
 import '../../../data/repositories/post_repository.dart';
+import '../../../core/services/connectivity_service.dart';
+import '../../../core/exceptions/cache_exception.dart';
 
 class PostsController extends GetxController {
   final PostRepository postRepository;
+  final ConnectivityService connectivityService = Get.find();
+  
   final RxList<PostModel> posts = <PostModel>[].obs;
   final RxBool isLoading = false.obs;
   final RxString error = ''.obs;
-  final RxBool isOffline = false.obs;
+  final RxBool isOffline = true.obs; // Inicia en true (offline por defecto)
 
   PostsController({required this.postRepository});
 
   @override
   void onReady() {
     super.onReady();
+    
+    // Actualiza isOffline INMEDIATAMENTE con el estado actual
+    isOffline.value = !connectivityService.isConnected.value;
+    
+    // Escucha cambios en la conexión en TIEMPO REAL
+    ever(connectivityService.isConnected, (_) {
+      isOffline.value = !connectivityService.isConnected.value;
+      print('🔄 Conexión cambió: ${connectivityService.isConnected.value}');
+    });
+    
+    // Carga los posts después de configurar el listener
     loadPosts();
   }
 
   Future<void> loadPosts() async {
     isLoading.value = true;
     error.value = '';
-    isOffline.value = false;
 
     try {
       final fetchedPosts = await postRepository.getPosts();
@@ -30,17 +45,63 @@ class PostsController extends GetxController {
         isOffline.value = true;
       } else {
         posts.assignAll(fetchedPosts);
+        error.value = '';
+        isOffline.value = false; // Cargó desde API = Online
+        print('✅ Posts cargados desde API');
+        Get.snackbar(
+          '📡 Modo Online',
+          'Mostrando ${fetchedPosts.length} posts desde API',
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 3),
+          backgroundColor: Colors.green,
+        );
+      }
+    } on CacheException catch (e) {
+      // Detecta que cargó desde caché
+      print('📡 ${e.message}');
+      isOffline.value = true;
+      error.value = '';
+      
+      // Obtiene los posts del caché
+      final allCached = await postRepository.getAllCachedPosts();
+      if (allCached.isNotEmpty) {
+        posts.assignAll(allCached);
+        Get.snackbar(
+          '📡 Modo Offline',
+          'Mostrando ${e.itemCount} posts en caché',
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 3),
+          backgroundColor: Colors.orange,
+        );
       }
     } catch (e) {
-      error.value = 'Error: $e';
+      // Otros errores
+      print('❌ Falló carga desde API: $e');
       isOffline.value = true;
-      Get.snackbar(
-        'Error',
-        'No se pudieron cargar los posts',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      
+      // Intenta caché como último recurso
+      final allCached = await postRepository.getAllCachedPosts();
+      if (allCached.isNotEmpty) {
+        posts.assignAll(allCached);
+        Get.snackbar(
+          '📡 Modo Offline',
+          'Mostrando ${allCached.length} posts en caché',
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 3),
+          backgroundColor: Colors.orange,
+        );
+        error.value = '';
+      } else {
+        error.value = 'No hay conexión y no hay datos en caché';
+        Get.snackbar(
+          'Error',
+          'No se pudieron cargar los posts',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      }
     } finally {
       isLoading.value = false;
+      print('🔌 isOffline: ${isOffline.value}');
     }
   }
 

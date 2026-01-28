@@ -8,7 +8,16 @@ class ConnectivityService extends GetxService {
   @override
   void onInit() {
     super.onInit();
-    _initConnectivity();
+    _initConnectivityAndListener();
+  }
+
+  /// Inicializa la conexión y LUEGO configura el listener
+  /// Evita carrera de condiciones
+  Future<void> _initConnectivityAndListener() async {
+    // Primero: espera a que se complete la verificación inicial
+    await _initConnectivity();
+    
+    // Luego: configura el listener (ahora sabemos el estado correcto)
     _setupListener();
   }
   
@@ -16,6 +25,7 @@ class ConnectivityService extends GetxService {
     try {
       final result = await _connectivity.checkConnectivity();
       isConnected.value = _isConnected(result);
+      print('📡 Estado inicial de conexión: ${isConnected.value}');
     } catch (e) {
       print('Error checking connectivity: $e');
       isConnected.value = false;
@@ -25,23 +35,30 @@ class ConnectivityService extends GetxService {
   void _setupListener() {
     _connectivity.onConnectivityChanged.listen((result) {
       final connected = _isConnected(result);
-      isConnected.value = connected;
+      final wasConnected = isConnected.value;
       
-      // Opcional: Mostrar notificación cuando cambia el estado
-      if (connected) {
-        Get.snackbar(
-          'Conectado',
-          'Tienes conexión a internet',
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 2),
-        );
-      } else {
-        Get.snackbar(
-          'Sin conexión',
-          'Modo offline activado',
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 2),
-        );
+      // Solo actualiza si cambió
+      if (connected != wasConnected) {
+        isConnected.value = connected;
+        
+        // Mostrar notificación cuando CAMBIA el estado (no al inicio)
+        if (connected) {
+          print('🟢 Conectado a internet');
+          Get.snackbar(
+            'Conectado',
+            'Tienes conexión a internet',
+            snackPosition: SnackPosition.BOTTOM,
+            duration: const Duration(seconds: 2),
+          );
+        } else {
+          print('🔴 Desconectado de internet');
+          Get.snackbar(
+            'Sin conexión',
+            'Modo offline activado',
+            snackPosition: SnackPosition.BOTTOM,
+            duration: const Duration(seconds: 2),
+          );
+        }
       }
     });
   }

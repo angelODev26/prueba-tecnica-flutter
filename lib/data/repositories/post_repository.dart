@@ -2,6 +2,7 @@ import '../../data/models/post_model.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/local_storage_service.dart';
 import '../../core/services/connectivity_service.dart';
+import '../../core/exceptions/cache_exception.dart';
 
 /// Interfaz: Define qué métodos debe tener cualquier PostRepository
 abstract class IPostRepository {
@@ -30,48 +31,41 @@ class PostRepository implements IPostRepository {
   @override
   Future<List<PostModel>> getPosts() async {
     try {
-      // Verifica conexión
-      final hasConnection = _connectivity.isConnected.value;
+      // Intenta obtener de API (sin verificar conexión primero)
+      print('🌐 Cargando posts desde API...');
+      final apiPostsJson = await _apiService.getPosts();
+      final apiPosts = apiPostsJson
+          .map((json) => PostModel.fromJson(json))
+          .toList();
 
-      if (hasConnection) {
-        // Intenta obtener de API
-        print('🌐 Cargando posts desde API...');
-        final apiPostsJson = await _apiService.getPosts();
-        final apiPosts = apiPostsJson
-            .map((json) => PostModel.fromJson(json))
-            .toList();
-
-        // Guarda en caché
-        await _localStorage.savePosts(apiPosts);
-        print('✅ Posts guardados en caché');
-        return apiPosts;
-      }
-
-      // Sin conexión → intenta caché
-      print('📡 Sin conexión. Intentando caché...');
-      final cachedPosts = await _localStorage.getCachedPosts();
-
-      if (cachedPosts.isNotEmpty) {
-        print('✅ Posts cargados desde caché (${cachedPosts.length})');
-        return cachedPosts;
-      }
-
-      // Sin conexión y sin caché
-      print('⚠️ No hay conexión y no hay datos en caché');
-      throw Exception('No hay conexión y no hay datos en caché');
+      // Guarda en caché
+      await _localStorage.savePosts(apiPosts);
+      print('✅ ${apiPosts.length} posts guardados en caché desde API');
+      return apiPosts;
     } catch (e) {
-      print('❌ Error en getPosts: $e');
-
-      // Último intento: caché como fallback
+      // Si API falla, intenta caché como fallback
+      print('❌ Falló carga desde API: $e');
+      print('📡 Intentando cargar desde caché...');
+      
       try {
         final cachedPosts = await _localStorage.getCachedPosts();
         if (cachedPosts.isNotEmpty) {
-          print('⚠️ Usando caché como fallback');
-          return cachedPosts;
+          print('✅ ${cachedPosts.length} posts cargados desde caché');
+          // Lanza excepción especial para indicar que vino del caché
+          throw CacheException(
+            message: 'Posts cargados desde caché',
+            itemCount: cachedPosts.length,
+          );
         }
-      } catch (_) {}
+      } catch (cacheError) {
+        if (cacheError is CacheException) {
+          rethrow; // Re-lanza la excepción de caché
+        }
+      }
 
-      rethrow; // Lanza error para que Controller lo maneje
+      // Si no hay caché, lanza el error original
+      print('⚠️ No hay caché disponible');
+      rethrow;
     }
   }
 
@@ -148,6 +142,19 @@ class PostRepository implements IPostRepository {
     } catch (e) {
       print('❌ Error en getFavorites: $e');
       rethrow;
+    }
+  }
+
+  /// Obtiene TODO el caché (independientemente si están expirados)
+  Future<List<PostModel>> getAllCachedPosts() async {
+    try {
+      final box = _localStorage.getCachedPostsBox();
+      final allPosts = box.values.whereType<PostModel>().toList();
+      allPosts.sort((a, b) => a.id.compareTo(b.id));
+      return allPosts;
+    } catch (e) {
+      print('❌ Error en getAllCachedPosts: $e');
+      return [];
     }
   }
 

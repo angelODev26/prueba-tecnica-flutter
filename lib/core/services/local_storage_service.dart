@@ -95,4 +95,9 @@ class LocalStorageService {
     final lastUpdate = settingsBox.get(_lastUpdateKey);
     return lastUpdate != null ? DateTime.parse(lastUpdate) : null;
   }
+
+  /// Obtiene la caja directamente para acceder a TODO el caché (incluso expirado)
+  Box getCachedPostsBox() {
+    return _getPostsBox();
+  }
 }

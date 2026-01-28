@@ -1,79 +1,80 @@
-# Flutter
-.DS_Store
+# Miscellaneous
+*.class
+*.log
+*.pyc
 *.swp
-*.swo
-*~
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be committed to version control.
+.vscode/
+!.vscode/extensions.json
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
 .packages
 .pub-cache/
 .pub/
 /build/
-/ios/.generated/
 
-# Android
-/android/**/GeneratedPluginRegistrant.java
-/android/.gradle/
-/android/local.properties
-/android/**/**.apk
-/android/**/**.ap_
-/android/**.keystore
-/android/key.properties
+# Symbolication related
+app.*.symbols
 
-# iOS
-/ios/**/*.mode1v3
-/ios/**/*.mode2v3
-/ios/**/*.moved-aside
-/ios/**/*.pbxuser
-/ios/**/*.perspectivev3
-/ios/**/*sync/
-/ios/.symlinks/
-/ios/Flutter/App.framework
-/ios/Flutter/Flutter.framework
-/ios/Flutter/Flutter.podspec
-/ios/Flutter/Generated.xcconfig
-/ios/Flutter/ephemeral/
-/ios/ServiceDefinitions.json
-/ios/Runner/GeneratedPluginRegistrant.*
+# Obfuscation related
+app.*.map.json
 
-# Coverage
-coverage/
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
 
-# VS Code
-.vscode/
-!vscode/settings.json
-!vscode/launch.json
+# iOS/macOS
+**/ios/**/*.mode1v3
+**/ios/**/*.mode2v3
+**/ios/**/*.moved-aside
+**/ios/**/*.pbxuser
+**/ios/**/*.perspectivev3
+**/ios/**/*.xcworkspace/xcuserdata/
+**/ios/**/.sconsign.dblite
+**/ios/**/.tags*
+**/ios/**/.vagrant/
+**/ios/**/DerivedData/
+**/ios/**/Icon?
+**/ios/**/Icon??
+**/ios/**/Icon???
+**/ios/**/Icon????
+**/ios/**/Icon?????
+**/ios/**/Icon????? copy
+**/ios/**/Icon?????*
+**/ios/**/Icon???? copy
+**/ios/**/Icon???? copy*
+**/ios/**/Icon???*
+**/ios/**/Icon??*
+**/ios/**/Icon?*
+**/ios/**/Icon
+**/ios/**/Icon*
+**/ios/**/xcuserdata/
+**/ios/.generated/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
 
-# IntelliJ
-.idea/
-*.iml
-
-# macOS
-.DS_Store
-
-# Windows
-Thumbs.db
+# Generated files
+*.g.dart
 
 # Environment variables
 .env
-.env.*
-
-# Hive
-*.hive
-*.lock
-
-# Logs
-logs/
-*.log
-
-# Misc
-*.lock
-*.patch
-*.diff
-*.orig
-*.rej
-*.swo
-*.swp
-*~
-\#*\#
-\.\#*
