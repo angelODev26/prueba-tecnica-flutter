@@ -15,10 +15,16 @@ Future<void> main() async {
   // 1. Inicializar binding de Flutter
   WidgetsFlutterBinding.ensureInitialized();
   
-  // 2. Inicializar Firebase (DEBE SER ANTES QUE TODO)
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  // 2. Inicializar Firebase (SOLO en plataformas soportadas: Android, iOS, Web)
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print('✅ Firebase inicializado correctamente');
+  } catch (e) {
+    print('⚠️ Firebase no disponible en esta plataforma: $e');
+    print('⚠️ La app continuará sin autenticación Firebase');
+  }
   
   // 3. Cargar variables de entorno
   await dotenv.load(fileName: ".env");
@@ -39,7 +45,16 @@ Future<void> main() async {
   // 7. Verificar si hay usuario autenticado (para auto-login)
   final localStorage = LocalStorageService();
   final hasUser = await localStorage.hasAuthenticatedUser();
-  final initialRoute = hasUser ? AppRoutes.posts : AppRoutes.auth;
+  
+  // Si Firebase NO está disponible, ir directo a posts (sin auth)
+  String initialRoute;
+  try {
+    Firebase.app(); // Verifica si Firebase está disponible
+    initialRoute = hasUser ? AppRoutes.posts : AppRoutes.auth;
+  } catch (e) {
+    print('⚠️ Firebase no disponible - Saltando autenticación');
+    initialRoute = AppRoutes.posts; // Ir directo a posts sin auth
+  }
   
   // 8. Ejecutar la aplicación
   runApp(MyApp(initialRoute: initialRoute));
