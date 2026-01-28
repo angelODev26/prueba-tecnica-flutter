@@ -3,6 +3,7 @@ import '../features/auth/views/auth_view.dart';
 import '../features/posts/views/posts_view.dart';
 import '../features/post_detail/views/post_detail_view.dart';
 import '../features/posts/bindings/posts_binding.dart';
+import '../features/post_detail/bindings/post_detail_binding.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -41,10 +42,8 @@ class AppPages {
     // Post Detail
     GetPage(
       name: AppRoutes.postDetail,
-      page: () {
-        final id = Get.parameters['id'];
-        return PostDetailView(postId: int.tryParse(id ?? '0') ?? 0);
-      },
+      page: () => const PostDetailView(),
+      binding: PostDetailBinding(),
       transition: Transition.cupertino,
     ),
   ];

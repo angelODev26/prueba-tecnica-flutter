@@ -1,59 +1,158 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../controllers/post_detail_controller.dart';
 
-class PostDetailView extends StatelessWidget {
-  final int postId;
-  
-  const PostDetailView({super.key, required this.postId});
-  
+class PostDetailView extends GetView<PostDetailController> {
+  const PostDetailView({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Post #$postId'),
+        title: const Text('Detalles del Post'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Get.back(),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Título del Post #$postId',
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 10),
-            
-            Row(
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (controller.error.value.isNotEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const CircleAvatar(
-                  radius: 16,
-                  child: Icon(Icons.person, size: 20),
-                ),
-                const SizedBox(width: 10),
-                const Text('Autor: Usuario'),
-                const Spacer(),
-                Chip(
-                  label: const Text('Categoría'),
-                  backgroundColor: Colors.blue[50],
+                const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                const SizedBox(height: 16),
+                Text(controller.error.value),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => controller.loadPostDetail(),
+                  child: const Text('Reintentar'),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-            
-            const Text(
-              'Este es el contenido detallado del post. Aquí iría la información completa obtenida desde la API.',
-              style: TextStyle(fontSize: 16, height: 1.5),
-            ),
-          ],
-        ),
-      ),
+          );
+        }
+
+        final post = controller.post.value;
+        if (post == null) {
+          return const Center(child: Text('Post no disponible'));
+        }
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Título
+              Obx(
+                () => Text(
+                  controller.post.value?.title ?? '',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // Autor y Favorito
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundColor: Colors.blue[100],
+                    child: Obx(() => Text('U${controller.post.value?.userId ?? ""}')),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Usuario ID:',
+                            style: TextStyle(fontSize: 12, color: Colors.grey)),
+                        Obx(
+                          () => Text(
+                            controller.post.value?.userId.toString() ?? '',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Obx(
+                    () => IconButton(
+                      icon: Icon(
+                        controller.post.value?.isFavorite == true
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                        color: controller.post.value?.isFavorite == true
+                            ? Colors.red
+                            : null,
+                      ),
+                      onPressed: () => controller.toggleFavorite(),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // ID del Post
+              Obx(
+                () => Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    'Post #${controller.post.value?.id ?? ""}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Divisor
+              const Divider(),
+              const SizedBox(height: 20),
+
+              // Body/Contenido
+              const Text(
+                'Contenido',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Obx(
+                () => Text(
+                  controller.post.value?.body ?? '',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    height: 1.6,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }),
     );
   }
 }
