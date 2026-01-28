@@ -23,20 +23,26 @@ class LocalStorageService {
     }
   }
   
-  /// Guarda posts en caché con timestamp
+  /// Guarda posts en caché SOLO SI NO HAY DATOS PREVIOS (primer fetch)
   Future<void> savePosts(List<PostModel> posts) async {
     final box = _getPostsBox();
     final settingsBox = _getSettingsBox();
-    final now = DateTime.now();
     
-    // Usa copyWith porque cachedAt es final
+    // Verificar si ya hay datos en caché
+    if (box.isNotEmpty) {
+      print('ℹ️ Caché ya contiene datos. No se actualiza (solo al primer fetch)');
+      return;
+    }
+    
+    // Solo guarda si el caché está vacío (primer fetch)
+    final now = DateTime.now();
     for (final post in posts) {
       final postWithTimestamp = post.copyWith(cachedAt: now);
       await box.put(post.id, postWithTimestamp);
     }
     
     await settingsBox.put(_lastUpdateKey, now.toIso8601String());
-    print('✅ ${posts.length} posts guardados en caché');
+    print('✅ ${posts.length} posts guardados en caché (primer fetch)');
   }
   
   /// Obtiene posts en caché si están válidos (no expirados)

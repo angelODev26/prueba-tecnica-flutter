@@ -123,4 +123,20 @@ class PostsController extends GetxController {
       Get.snackbar('Error', 'No se pudo actualizar favorito');
     }
   }
+
+  /// Limpia el caché y recarga los posts desde la API
+  Future<void> clearCache() async {
+    try {
+      await postRepository.clearCache();
+      Get.snackbar(
+        '🗑️ Caché limpiado',
+        'Cargando posts desde API...',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      // Recarga los posts después de limpiar caché
+      await loadPosts();
+    } catch (e) {
+      Get.snackbar('Error', 'No se pudo limpiar el caché');
+    }
+  }
 }

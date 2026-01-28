@@ -19,6 +19,31 @@ class PostsView extends GetView<PostsController> {
             onPressed: () {},
           ),
           IconButton(
+            icon: const Icon(Icons.delete_outline),
+            tooltip: 'Limpiar caché',
+            onPressed: () {
+              Get.dialog(
+                AlertDialog(
+                  title: const Text('Limpiar caché'),
+                  content: const Text('¿Eliminar todos los posts del caché?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Get.back(),
+                      child: const Text('Cancelar'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Get.back(); // Cierra inmediatamente
+                        controller.clearCache(); // Ejecuta en background
+                      },
+                      child: const Text('Eliminar'),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
               Get.offAllNamed('/auth');
