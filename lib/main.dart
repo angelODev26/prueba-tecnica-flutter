@@ -2,34 +2,56 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'routes/app_pages.dart';
 import 'package:prueba_tecnica/data/models/post_model.dart';
+import 'package:prueba_tecnica/data/models/user_model.dart';
 import 'core/bindings/initial_bindings.dart';
+import 'core/services/local_storage_service.dart';
+import 'routes/app_routes.dart';
 
 Future<void> main() async {
   // 1. Inicializar binding de Flutter
   WidgetsFlutterBinding.ensureInitialized();
   
-  // 2. Cargar variables de entorno
+  // 2. Inicializar Firebase (DEBE SER ANTES QUE TODO)
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  
+  // 3. Cargar variables de entorno
   await dotenv.load(fileName: ".env");
   
-  // 3. Inicializar Hive (base de datos local)
+  // 4. Inicializar Hive (base de datos local)
   await Hive.initFlutter();
   
-  // 4. Registrar adaptadores (se añadirán después)
+  // 5. Registrar adaptadores
   Hive.registerAdapter(PostModelAdapter());
+  Hive.registerAdapter(UserModelAdapter());
   
-  // 5. Abrir boxes de Hive
+  // 6. Abrir boxes de Hive
   await Hive.openBox('app_settings');
   await Hive.openBox('posts_cache');
   await Hive.openBox('session_box');
+  await Hive.openBox<UserModel>('users');
   
-  // 6. Ejecutar la aplicación
-  runApp(const MyApp());
+  // 7. Verificar si hay usuario autenticado (para auto-login)
+  final localStorage = LocalStorageService();
+  final hasUser = await localStorage.hasAuthenticatedUser();
+  final initialRoute = hasUser ? AppRoutes.posts : AppRoutes.auth;
+  
+  // 8. Ejecutar la aplicación
+  runApp(MyApp(initialRoute: initialRoute));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String initialRoute;
+
+  const MyApp({
+    super.key,
+    required this.initialRoute,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +61,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         useMaterial3: true,
       ),
-      initialRoute: AppPages.initial,
+      initialRoute: initialRoute,
       getPages: AppPages.routes,
       initialBinding: InitialBindings(),
       debugShowCheckedModeBanner: false,

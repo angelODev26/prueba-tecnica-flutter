@@ -1,0 +1,19 @@
+import 'package:get/get.dart';
+import 'package:prueba_tecnica/core/services/auth_service.dart';
+import 'package:prueba_tecnica/core/services/local_storage_service.dart';
+import 'package:prueba_tecnica/features/auth/controllers/auth_controller.dart';
+
+class AuthBinding extends Bindings {
+  @override
+  void dependencies() {
+    // AuthService está registrado en InitialBindings, solo obtener instancia
+    final authService = Get.find<AuthService>();
+    final localStorage = Get.find<LocalStorageService>();
+
+    // Registrar AuthController
+    Get.lazyPut(() => AuthController(
+          authService: authService,
+          localStorage: localStorage,
+        ));
+  }
+}

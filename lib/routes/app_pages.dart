@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import '../features/auth/views/auth_view.dart';
+import '../features/auth/bindings/auth_binding.dart';
 import '../features/posts/views/posts_view.dart';
 import '../features/post_detail/views/post_detail_view.dart';
 import '../features/posts/bindings/posts_binding.dart';
@@ -14,6 +15,7 @@ class AppPages {
     GetPage(
       name: AppRoutes.auth,
       page: () => const AuthView(),
+      binding: AuthBinding(),
       transition: Transition.fadeIn,
       transitionDuration: const Duration(milliseconds: 300),
     ),
@@ -21,13 +23,15 @@ class AppPages {
     // Login
     GetPage(
       name: AppRoutes.login,
-      page: () => const AuthView(isLogin: true),
+      page: () => const AuthView(),
+      binding: AuthBinding(),
     ),
     
     // Register
     GetPage(
       name: AppRoutes.register,
-      page: () => const AuthView(isLogin: false),
+      page: () => const AuthView(),
+      binding: AuthBinding(),
     ),
     
     // Post List

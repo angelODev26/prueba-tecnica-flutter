@@ -1,9 +1,11 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../data/models/post_model.dart';
+import '../../data/models/user_model.dart';
 
 class LocalStorageService {
   static const String _postsBoxName = 'posts_cache';
   static const String _settingsBoxName = 'app_settings';
+  static const String _usersBoxName = 'users';
   static const String _lastUpdateKey = 'posts_last_update';
   static const Duration _cacheDuration = Duration(hours: 24);
   
@@ -20,6 +22,14 @@ class LocalStorageService {
       return Hive.box(_settingsBoxName);
     } catch (e) {
       throw Exception('app_settings box no fue inicializada en main.dart: $e');
+    }
+  }
+
+  Box<UserModel> _getUsersBox() {
+    try {
+      return Hive.box<UserModel>(_usersBoxName);
+    } catch (e) {
+      throw Exception('users box no fue inicializada en main.dart: $e');
     }
   }
   
@@ -105,5 +115,47 @@ class LocalStorageService {
   /// Obtiene la caja directamente para acceder a TODO el caché (incluso expirado)
   Box getCachedPostsBox() {
     return _getPostsBox();
+  }
+
+  // ============================================================================
+  // MÉTODOS DE USUARIO (SESSION PERSISTENCE)
+  // ============================================================================
+
+  /// Guarda el usuario autenticado en Hive
+  Future<void> saveUser(UserModel user) async {
+    final box = _getUsersBox();
+    // Guardar con email como clave para fácil búsqueda
+    await box.put('current_user', user);
+    print('✅ Usuario guardado en Hive: ${user.email}');
+  }
+
+  /// Obtiene el usuario autenticado actual
+  Future<UserModel?> getCurrentUser() async {
+    final box = _getUsersBox();
+    try {
+      final user = box.get('current_user');
+      print('✅ Usuario cargado de Hive: ${user?.email}');
+      return user;
+    } catch (e) {
+      print('❌ Error al cargar usuario: $e');
+      return null;
+    }
+  }
+
+  /// Limpia los datos de sesión del usuario
+  Future<void> clearUser() async {
+    final box = _getUsersBox();
+    try {
+      await box.delete('current_user');
+      print('✅ Datos de usuario eliminados de Hive');
+    } catch (e) {
+      print('❌ Error al eliminar usuario: $e');
+    }
+  }
+
+  /// Verifica si hay usuario autenticado
+  Future<bool> hasAuthenticatedUser() async {
+    final box = _getUsersBox();
+    return box.containsKey('current_user');
   }
 }
