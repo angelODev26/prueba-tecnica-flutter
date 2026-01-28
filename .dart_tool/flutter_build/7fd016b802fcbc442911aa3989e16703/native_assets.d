@@ -1,1 +1,0 @@
- /home/angeldev/proyectos_flutter/prueba_tecnica/.dart_tool/flutter_build/7fd016b802fcbc442911aa3989e16703/native_assets.yaml: 
